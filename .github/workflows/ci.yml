@@ -38,7 +38,7 @@ jobs:
   deploy-pages:
     name: 部署 GitHub Pages
     needs: regression
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
