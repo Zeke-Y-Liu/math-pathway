@@ -61,13 +61,21 @@
   }
 
   Ctx.prototype = {
-    canvas(height, ratio) {
+    canvas(height) {
       const wrap = document.createElement('div');
       wrap.className = 'viz-canvas-wrap';
       const cv = document.createElement('canvas');
       if (!height) height = 380;
-      if (ratio && ratio !== 1) height = Math.round(height);
-      cv.style.height = height + 'px';
+      // 窄屏（手机）按容器宽度自适应压低画布高度，避免竖长条
+      const applyH = () => {
+        const w = wrap.clientWidth;
+        const h = (w > 0 && w < 500) ? Math.max(220, Math.min(height, Math.round(w * 1.05))) : height;
+        cv.style.height = h + 'px';
+      };
+      applyH();
+      const roH = new ResizeObserver(applyH);
+      roH.observe(wrap);
+      VIZ.cleanups.push(() => roH.disconnect());
       wrap.appendChild(cv);
       this.body.appendChild(wrap);
       return cv;
@@ -353,6 +361,8 @@
     },
     drag(onMove) {
       const cv = this.cv;
+      // 标记为可拖拽画布：禁用其上的浏览器手势（滚动/缩放），拖动交给组件自身
+      cv.style.touchAction = 'none';
       const get = (e) => {
         const r = cv.getBoundingClientRect();
         const cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;

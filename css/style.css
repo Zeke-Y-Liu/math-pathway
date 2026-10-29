@@ -68,6 +68,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh; /* iOS 工具栏动态视口 */
   overflow-y: auto;
   transition: transform .3s ease;
 }
@@ -95,6 +96,8 @@ body {
   box-shadow: var(--shadow);
 }
 
+#sidebar-backdrop { display: none; }
+
 @media (max-width: 1020px) {
   #sidebar-toggle { display: block; }
   #sidebar {
@@ -102,9 +105,37 @@ body {
     z-index: 50;
     transform: translateX(-105%);
     box-shadow: 0 0 60px rgba(0,0,0,.25);
+    overscroll-behavior: contain;
   }
   #sidebar.open { transform: translateX(0); }
   #main { padding-top: 64px; }
+  #sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(35,38,47,.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  #sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+  body.drawer-open { overflow: hidden; }
+}
+@media (min-width: 1021px) {
+  #sidebar-backdrop { display: none !important; }
+}
+
+/* 触控优化：去掉移动端双击缩放延迟 */
+a, button, .ex-opt, select, input[type=range] { touch-action: manipulation; }
+
+@media (pointer: coarse) {
+  input[type=range] { height: 26px; }
+  input[type=range]::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -8.5px; }
+  input[type=range]::-moz-range-thumb { width: 17px; height: 17px; }
+  .viz-controls button { padding: 9px 18px; }
+  .ex-btn { padding: 10px 22px; }
+  .ex-opt { padding: 12px 16px; }
 }
 
 /* ---------- 侧边栏 ---------- */
@@ -1023,7 +1054,22 @@ input[type=range]::-moz-range-thumb {
   .ex-card { padding: 16px 16px 14px; }
   .viz-body { padding: 10px 10px 12px; }
   .chapter-hero .ch-watermark { display: none; }
+  .ch-nav { flex-direction: column; }
   .ch-nav a { max-width: 100%; }
+  /* 每个控件独占一行，滑块有足够拖动空间 */
+  .viz-controls { gap: 10px 14px; padding: 10px 12px; }
+  .ctl { min-width: 100%; }
+  .ctl label { flex-shrink: 0; }
+  /* 数值输入自适应剩余宽度 */
+  .ex-numeric-row input[type=text] { flex: 1 1 140px; width: auto; max-width: 220px; }
+  .hero-stats { gap: 14px 24px; margin-top: 32px; }
+  .stat { min-width: 84px; }
+  .stat .stat-n { font-size: 25px; }
+  .wb-stats { gap: 10px; }
+  .wb-tabs { margin-left: 0; width: 100%; }
+  .keypoints { padding: 18px 18px 16px; }
+  .home-note { padding: 16px 16px; }
+  .ex-solution { padding: 14px 16px 14px; }
 }
 
 /* ---------- 错题本 ---------- */

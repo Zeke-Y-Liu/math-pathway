@@ -522,14 +522,24 @@
     }
     buildSidebar();
     updateSidebarActive();
-    $('#sidebar').classList.remove('open');
+    setSidebar(false);
   }
 
   window.addEventListener('hashchange', route);
 
-  $('#sidebar-toggle').addEventListener('click', () => {
-    $('#sidebar').classList.toggle('open');
-  });
+  /* ---------- 侧栏抽屉开关（移动端） ---------- */
+  const sideEl = $('#sidebar');
+  const sideToggle = $('#sidebar-toggle');
+  const sideBackdrop = $('#sidebar-backdrop');
+  function setSidebar(open) {
+    sideEl.classList.toggle('open', open);
+    sideBackdrop.classList.toggle('show', open);
+    document.body.classList.toggle('drawer-open', open);
+    sideToggle.textContent = open ? '✕' : '☰';
+    sideToggle.setAttribute('aria-label', open ? '关闭目录' : '打开目录');
+  }
+  sideToggle.addEventListener('click', () => setSidebar(!sideEl.classList.contains('open')));
+  sideBackdrop.addEventListener('click', () => setSidebar(false));
 
   // 初始化
   buildSidebar();
