@@ -174,6 +174,8 @@ class Harness:
         self.base = base.rstrip("/")
         self.browser = None
         self.pages = []  # [(page, Watcher)]
+        # 远程目标（--url 线上回归）经代理逐资源加载慢，导航超时放宽
+        self.nav_ms = 15000 if "127.0.0.1" in self.base else 90000
 
     def launch(self):
         self.browser = self.pw.chromium.launch(channel="chrome", headless=True, args=CHROME_ARGS)
@@ -184,6 +186,7 @@ class Harness:
             ctx.add_init_script(init_script)
         pg = ctx.new_page()
         pg.set_default_timeout(15000)
+        pg.set_default_navigation_timeout(self.nav_ms)
         w = Watcher(pg)
         self.pages.append((pg, w))
         return pg, w
