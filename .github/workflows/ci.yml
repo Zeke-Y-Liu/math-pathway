@@ -1,0 +1,65 @@
+name: CI · 回归测试与 Pages 发布
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    name: 回归测试（桌面 + 移动）
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装 Playwright（复用 runner 预装 Chrome，无需下载浏览器）
+        run: pip install playwright
+
+      - name: 全量回归（Playwright + Chrome）
+        run: python3 tests/regression.py
+
+      - name: 上传失败截图
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-failure
+          path: tests/artifacts/
+          if-no-files-found: ignore
+
+  deploy-pages:
+    name: 部署 GitHub Pages
+    needs: regression
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      - name: 打包站点产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 部署
+        id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,21 @@
+#!/bin/sh
+# ------------------------------------------------------------
+# 「从函数到分析」— pre-commit 回归门禁
+# 每次提交前自动运行冒烟回归（桌面 + 移动关键路径），
+# 未通过则阻止提交，防止带病入库。
+#
+# 安装（本仓库已默认安装；新克隆后执行一次）：
+#   cp tests/hooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+#
+# 临时跳过某次提交： git commit --no-verify
+# ------------------------------------------------------------
+command -v python3 >/dev/null 2>&1 || exit 0
+ROOT="$(git rev-parse --show-toplevel)"
+[ -f "$ROOT/tests/regression.py" ] || exit 0
+
+python3 "$ROOT/tests/regression.py" --smoke || {
+  echo ""
+  echo "❌ 冒烟回归未通过，已阻止本次提交。"
+  echo "   修复问题后重试；紧急情况可 git commit --no-verify 跳过。"
+  exit 1
+}
